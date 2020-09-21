@@ -66,18 +66,48 @@ public class Allocator {
         }
     }
 
-    private Header getNextHeader(Header nextHeader) {
-        return (Header) memory.get(nextHeader.getAddressStart() + nextHeader.getSizeOfBlock() + 1);
+    private Header getNextHeader(Header header) {
+        return (Header) memory.get(header.getAddressStart() + header.getSizeOfBlock() + 1);
     }
 
     public Integer mem_realloc(int address, int size) {
-//        Header header = ((Header) memory.get(address));
-//        if (header.getSizeOfBlock() < size) {
-//            checkNextHeader();
-//        } else {
-//
-//        }
+        Header header = ((Header) memory.get(address));
+        int realSize = header.getSizeOfBlock();
+        if (realSize == size) {
+            return address;
+        } else if (realSize < size) {
+            int headersToOccupy = (int) Math.ceil((size - realSize + 0.0) / blockSize);
+            Header nexHeader = getNextHeader(header);
+            for (int i = 0; i < headersToOccupy; i++) {
+                if (!nexHeader.isFree()) {
+                    return mem_alloc(size);
+                }
+                nexHeader = getNextHeader(nexHeader);
+            }
+
+        } else {
+            int headersToFree = (realSize - size) / blockSize;
+            for (int i = 0; i < headersToFree; i++) {
+                int index = getIndexOfLastHeader(getIndexOfEndOfBlock(header), i + 1);
+                Object current = memory.get(index + 1);
+                if (current instanceof Byte) {
+                    System.out.println(index);
+                    throw new RuntimeException();
+                }
+                ((Header) current).setFree(true);
+            }
+            header.setSizeOfBlock(header.getSizeOfBlock() - headersToFree * blockSize);
+            return address;
+        }
         return null;
+    }
+
+    private int getIndexOfLastHeader(int indexOfEndOfBlock, int i) {
+        return indexOfEndOfBlock - (i) * blockSize;
+    }
+
+    private int getIndexOfEndOfBlock(Header header) {
+        return header.getAddressStart() + header.getSizeOfBlock();
     }
 
     public void mem_free(int address) {
