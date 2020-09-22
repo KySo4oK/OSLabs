@@ -35,17 +35,7 @@ public class Allocator {
                 createNewHeaderAfterNewBlock(getIndexOfNextHeaderStartAddress(header));
                 return header.getAddressStart();
             }
-            Header nextHeader = getNextHeader(header);
-            while (nextHeader.isFree()) {
-                if (size < getNewSizeOfBlock(header, nextHeader)) {
-                    occupyAllMemoryBetweenHeaders(header, nextHeader);
-                    header.setSize(getSizeWithAlignment(size));
-                    createNewHeaderAfterNewBlock(getIndexOfNextHeaderStartAddress(header));
-                    return header.getAddressStart();
-                } else {
-                    nextHeader = getNextHeader(nextHeader);
-                }
-            }
+            if (isPossibleToExtendCurrentBlock(size, header)) return header.getAddressStart();
         }
         return null;
     }
@@ -70,8 +60,9 @@ public class Allocator {
         } else {
             newHeader.setSize(nextHeaderAfterNew.getAddressStart() - 1 - newHeader.getAddressStart());
         }
-
-        memory[headerIndex] = newHeader;
+        if (headerIndex != memory.length) {
+            memory[headerIndex] = newHeader;
+        }
     }
 
     private int getIndexOfNextHeaderStartAddress(Header header) {
@@ -97,56 +88,56 @@ public class Allocator {
         return (Header) memory[getIndexOfNextHeaderStartAddress(header)];
     }
 
-//    public Integer mem_realloc(int address, int size) {
-//        Header header = ((Header) memory.get(address));
-//        int realSize = header.getSize();
-//        if (realSize == size) {
-//            return address;
-//        } else if (realSize < size) {
-//            int headersToOccupy = (int) Math.ceil((size - realSize + 0.0) / ALIGNMENT_SIZE);
-//            Header nexHeader = getNextHeader(header);
-//            for (int i = 0; i < headersToOccupy; i++) {
-//                if (!nexHeader.isFree()) {
-//                    return mem_alloc(size);
-//                }
-//                nexHeader = getNextHeader(nexHeader);
-//            }
-//
-//        } else {
-//            int headersToFree = (realSize - size) / ALIGNMENT_SIZE;
-//            for (int i = 0; i < headersToFree; i++) {
-//                int index = getIndexOfLastHeader(getIndexOfEndOfBlock(header), i + 1);
-//                Object current = memory.get(index + 1);
-//                if (current instanceof Byte) {
-//                    System.out.println(index);
-//                    throw new RuntimeException();
-//                }
-//                ((Header) current).setFree(true);
-//            }
-//            header.setSize(header.getSize() - headersToFree * ALIGNMENT_SIZE);
-//            return address;
-//        }
-//        return null;
-//    }
-//
-//    private int getIndexOfLastHeader(int indexOfEndOfBlock, int i) {
-//        return indexOfEndOfBlock - (i) * ALIGNMENT_SIZE;
-//    }
-//
-//    private int getIndexOfEndOfBlock(Header header) {
-//        return header.getAddressStart() + header.getSize();
-//    }
-//
-//    public void mem_free(int address) {
-//        Header header = ((Header) memory.get(address));
-//        for (int i = address; i < getIndexOfNextHeader(header.getSize(), address, header); i++) {
-//            Object current = memory.get(i);
-//            if (current instanceof Byte) {
-//                continue;
-//            }
-//            ((Header) current).setFree(true);
-//        }
-//    }
+    public Integer mem_realloc(int address, int size) {
+        Header header = ((Header) memory[address - 1]);
+        int realSize = header.getSize();
+        if (realSize == size) {
+            return address;
+        } else if (realSize < size) {
+            if (isPossibleToExtendCurrentBlock(size, header)) {
+                return header.getAddressStart();
+            } else {
+                int newAddress = mem_alloc(size);
+                copyBlockToNewAddress(header, newAddress);
+                header.setFree(true);
+                return newAddress;
+            }
+        } else {
+            int alignmentBlocksThatCanBeRemoved = (realSize - size) / ALIGNMENT_SIZE;
+            if (alignmentBlocksThatCanBeRemoved > 0) {
+                header.setSize(header.getSize() - alignmentBlocksThatCanBeRemoved * ALIGNMENT_SIZE);
+                createNewHeaderAfterNewBlock(header.getSize() + header.getAddressStart());
+                return address;
+            }
+        }
+        return null;
+    }
+
+    private void copyBlockToNewAddress(Header header, int newAddress) {
+        for (int i = 0; i < header.getSize(); i++) {
+            memory[newAddress + i] = memory[header.getAddressStart() + i];
+        }
+    }
+
+    private boolean isPossibleToExtendCurrentBlock(int size, Header header) {
+        Header nextHeader = getNextHeader(header);
+        while (nextHeader.isFree()) {
+            if (size <= getNewSizeOfBlock(header, nextHeader)) {
+                occupyAllMemoryBetweenHeaders(header, nextHeader);
+                header.setSize(getSizeWithAlignment(size));
+                createNewHeaderAfterNewBlock(getIndexOfNextHeaderStartAddress(header));
+                return true;
+            } else {
+                nextHeader = getNextHeader(nextHeader);
+            }
+        }
+        return false;
+    }
+
+    public void mem_free(int address) {
+        Header header = ((Header) memory[address - 1]);
+        header.setFree(true);
+    }
 
     public void mem_dump(int... address) {
         printSeparatorLine();
