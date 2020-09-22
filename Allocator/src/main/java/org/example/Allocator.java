@@ -156,4 +156,20 @@ public class Allocator {
     private void printSeparatorLine() {
         System.out.println("=========================================================");
     }
+
+    public byte[] readDataByAddress(int address){
+        Header header = (Header) memory[address - 1];
+        int blockSize = header.getSize();
+        int blockStart = header.getAddressStart();
+        byte[] bytes = new byte[blockSize];
+        for (int i = 0; i < blockSize; i++) {
+            bytes[i] = (byte) memory[blockStart + i];
+        }
+        return bytes;
+    }
+    public void writeDataByAddress(int address, byte[] data){
+        for (int i = 0; i < data.length; i++) {
+            memory[address + i] = data[i];
+        }
+    }
 }
