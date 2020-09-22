@@ -1,30 +1,34 @@
 package org.example;
 
 public class Header {
-    private int sizeOfBlock;
+    private int size;
     private boolean isFree = true;
     private int addressStart;
+
+    public Header() {
+
+    }
 
     @Override
     public String toString() {
         return "Header{" +
-                "sizeOfBlock=" + sizeOfBlock +
+                "sizeOfBlock=" + size +
                 ", isFree=" + isFree +
                 ", addressStart=" + addressStart +
                 '}';
     }
 
-    public Header(int sizeOfBlock, int addressStart) {
-        this.sizeOfBlock = sizeOfBlock;
+    public Header(int size, int addressStart) {
+        this.size = size;
         this.addressStart = addressStart;
     }
 
-    public int getSizeOfBlock() {
-        return sizeOfBlock;
+    public int getSize() {
+        return size;
     }
 
-    public void setSizeOfBlock(int sizeOfBlock) {
-        this.sizeOfBlock = sizeOfBlock;
+    public void setSize(int size) {
+        this.size = size;
     }
 
     public boolean isFree() {
