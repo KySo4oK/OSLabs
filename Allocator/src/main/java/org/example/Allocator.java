@@ -1,43 +1,59 @@
 package org.example;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 public class Allocator {
     public static final int ALIGNMENT_SIZE = 4;
     private final int size;
-    private final Object[] memory;
+    private final byte[] memory;
 
     public Allocator(int size) {
         this.size = size;
-        memory = new Object[size];
+        memory = new byte[size];
         initMemory();
     }
 
     private void initMemory() {
-        memory[0] = new Header(size - 1, 1);
-        for (int i = 1; i < size; i++) {
-            memory[i] = Byte.valueOf("0");
-        }
+        memory[0] = getFalseInByte();
+    }
+
+    private byte getFalseInByte() {
+        return (byte) (0);
     }
 
     public Integer mem_alloc(int size) {
         for (int i = 0; i < this.size; i++) {
-            Object current = memory[i];
-            if (current instanceof Byte) {
+            int lengthOfBlock = getLengthOfBlock(i);
+            if (convertByteToBoolean(memory[i])) {
+                i = i + 5 + lengthOfBlock;
                 continue;
             }
-            Header header = ((Header) current);
-            if (!header.isFree()) {
-                i = getIndexOfNextHeaderStartAddress(header) - 1;
-                continue;
-            }
-            if (header.getSize() >= size) {
-                header.setFree(false);
-                header.setSize(getSizeWithAlignment(size));
+            if (lengthOfBlock >= size) {
+                memory[i] = getTrueInByte();
+                setNewSize(i,getSizeWithAlignment(size));
                 createNewHeaderAfterNewBlock(getIndexOfNextHeaderStartAddress(header));
                 return header.getAddressStart();
             }
             if (isPossibleToExtendCurrentBlock(size, header)) return header.getAddressStart();
         }
         return null;
+    }
+
+    private byte getTrueInByte() {
+        return (byte) 1;
+    }
+
+    private int getLengthOfBlock(int i) {
+        return convertByteToInt(Arrays.copyOfRange(memory, i + 1, i + 5));
+    }
+
+    private int convertByteToInt(byte[] array) {
+        return ByteBuffer.wrap(array).getInt();
+    }
+
+    private boolean convertByteToBoolean(byte b) {
+        return b != 0;
     }
 
     private int getSizeWithAlignment(int size) {
@@ -156,20 +172,20 @@ public class Allocator {
     private void printSeparatorLine() {
         System.out.println("=========================================================");
     }
-
-    public byte[] readDataByAddress(int address){
-        Header header = (Header) memory[address - 1];
-        int blockSize = header.getSize();
-        int blockStart = header.getAddressStart();
-        byte[] bytes = new byte[blockSize];
-        for (int i = 0; i < blockSize; i++) {
-            bytes[i] = (byte) memory[blockStart + i];
-        }
-        return bytes;
-    }
-    public void writeDataByAddress(int address, byte[] data){
-        for (int i = 0; i < data.length; i++) {
-            memory[address + i] = data[i];
-        }
-    }
+//
+//    public byte[] readDataByAddress(int address){
+//        Header header = (Header) memory[address - 1];
+//        int blockSize = header.getSize();
+//        int blockStart = header.getAddressStart();
+//        byte[] bytes = new byte[blockSize];
+//        for (int i = 0; i < blockSize; i++) {
+//            bytes[i] = (byte) memory[blockStart + i];
+//        }
+//        return bytes;
+//    }
+//    public void writeDataByAddress(int address, byte[] data){
+//        for (int i = 0; i < data.length; i++) {
+//            memory[address + i] = data[i];
+//        }
+//    }
 }
