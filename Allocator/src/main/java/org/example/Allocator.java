@@ -140,21 +140,17 @@ public class Allocator implements MemoryAllocator {
     }
 
     @Override
-    public void mem_dump(int... address) {
+    public void mem_dump() {
         printSeparatorLine();
-        if (address.length == 0) {
-            for (Object o : memory) {
-                System.out.println(o);
-            }
-        } else {
-            for (int i = address[0]; i < size; i++) {
-                System.out.println(memory[i]);
-            }
+        System.out.println();
+        for (byte b : memory) {
+            System.out.print(b + " ");
         }
+        System.out.println();
         printSeparatorLine();
     }
 
     private void printSeparatorLine() {
-        System.out.println("=========================================================");
+        System.out.println("=================================================================");
     }
 }

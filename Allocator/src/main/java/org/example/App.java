@@ -8,11 +8,11 @@ public class App {
 
         System.out.println("allocate new block");
         Integer address = allocator.mem_alloc(9);
-        System.out.println(address);
+        System.out.println("address - " + address);
         allocator.mem_dump();
 
         System.out.println("reallocate block");
-        System.out.println(allocator.mem_realloc(address, 7));
+        System.out.println("address - " + allocator.mem_realloc(address, 7));
         allocator.mem_dump();
 
         System.out.println("make block free");

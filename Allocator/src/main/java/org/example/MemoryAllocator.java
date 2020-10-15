@@ -9,5 +9,5 @@ public interface MemoryAllocator {
 
     void mem_free(int address);
 
-    void mem_dump(int... address);
+    void mem_dump();
 }
