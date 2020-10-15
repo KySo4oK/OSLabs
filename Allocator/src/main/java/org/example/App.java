@@ -3,7 +3,7 @@ package org.example;
 public class App {
     public static void main(String[] args) {
         System.out.println("new allocator");
-        Allocator allocator = new Allocator(30);
+        MemoryAllocator allocator = new Allocator(30);
         allocator.mem_dump();
 
         System.out.println("allocate new block");

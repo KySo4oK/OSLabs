@@ -3,8 +3,7 @@ package org.example;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class Allocator {
-    public static final int ALIGNMENT_SIZE = 4;
+public class Allocator implements MemoryAllocator {
     private final int size;
     private final byte[] memory;
 
@@ -23,6 +22,7 @@ public class Allocator {
         return (byte) (0);
     }
 
+    @Override
     public Integer mem_alloc(int size) {
         for (int i = 0; i < this.size; i++) {
             int lengthOfBlock = getLengthOfBlock(i);
@@ -94,6 +94,7 @@ public class Allocator {
         setNewSize(headerIndex, sizeOfNewBlock - 5);
     }
 
+    @Override
     public Integer mem_realloc(int address, int newSizeOfExistingBlock) {
         int realSize = getLengthOfBlock(address);
         if (realSize == newSizeOfExistingBlock) {
@@ -133,10 +134,12 @@ public class Allocator {
     }
 
 
+    @Override
     public void mem_free(int address) {
         memory[address] = getFalseInByte();
     }
 
+    @Override
     public void mem_dump(int... address) {
         printSeparatorLine();
         if (address.length == 0) {
