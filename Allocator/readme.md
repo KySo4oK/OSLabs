@@ -12,3 +12,17 @@
 ##### function which show state of our memory
 ## Work examples
 * Integer mem_alloc(int size)
+#### before
+![1](images/1.png)
+#### after
+![2](images/2.png)
+* Integer mem_realloc(int address, int newSizeOfExistingBlock)
+#### before
+![3](images/2.png)
+#### after
+![4](images/3.png)
+* void mem_free(int address)
+#### before
+![5](images/3.png)
+#### after
+![6](images/4.png)
