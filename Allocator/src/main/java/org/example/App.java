@@ -43,9 +43,9 @@ public class App {
 //        System.out.println(allocator.mem_alloc(19));
 //        allocator.mem_dump();
 //
-//        //set block is free
-//        System.out.println("set block is free");
-//        allocator.mem_free(address);
-//        allocator.mem_dump();
+        //set block is free
+        System.out.println("set block is free");
+        allocator.mem_free(address);
+        allocator.mem_dump();
     }
 }

@@ -1,4 +1,4 @@
 package org.example;
 /*
-  isAvailable ->SizeOfBlock(contains 3 bytes)
+  isAvailable ->SizeOfBlock(contains 4 bytes)
  */

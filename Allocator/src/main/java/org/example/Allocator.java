@@ -110,8 +110,7 @@ public class Allocator {
     }
 
 //    public Integer mem_realloc(int address, int size) {
-//        Header header = ((Header) memory[address - 1]);
-//        int realSize = header.getSize();
+//        int realSize = getLengthOfBlock(address);
 //        if (realSize == size) {
 //            return address;
 //        } else if (realSize < size) {
@@ -141,10 +140,9 @@ public class Allocator {
     }
 
 
-//    public void mem_free(int address) {
-//        Header header = ((Header) memory[address - 1]);
-//        header.setFree(true);
-//    }
+    public void mem_free(int address) {
+        memory[address] = getFalseInByte();
+    }
 
     public void mem_dump(int... address) {
         printSeparatorLine();
