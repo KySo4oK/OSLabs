@@ -3,4 +3,4 @@ project(Allocator_c__)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Allocator_c__ main.cpp)
+add_executable(Allocator_c__ main.cpp Allocator.cpp Allocator.h)
