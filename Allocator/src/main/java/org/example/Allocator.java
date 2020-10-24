@@ -97,6 +97,7 @@ public class Allocator implements MemoryAllocator {
     @Override
     public Integer mem_realloc(int address, int newSizeOfExistingBlock) {
         int realSize = getLengthOfBlock(address);
+        newSizeOfExistingBlock = getSizeWithAlignment(newSizeOfExistingBlock);
         if (realSize == newSizeOfExistingBlock) {
             return address;
         } else if (realSize < newSizeOfExistingBlock) {
