@@ -1,21 +1,41 @@
 package org.example;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.*;
 
 public class Allocator implements MemoryAllocator {
+    public static final int NEXT_PAGE_DESCRIPTOR_SIZE = 4;
     private final int size;
     private final byte[] memory;
+    private final int pages = 4;
+    private final int pageSize;
+    private final int pageDescriptorSize = 2;
+    private final int blockHeaderSize = 5;
+    private final List<Integer> freePages = new ArrayList<>();
+    private final Map<Integer, List<Integer>> freeBlocksMap = new HashMap<>();
+
+    public Allocator() {
+        this(256);
+    }
 
     public Allocator(int size) {
         this.size = size;
+        this.pageSize = size / pages;
         memory = new byte[size];
         initMemory();
     }
 
     private void initMemory() {
         memory[0] = getFalseInByte();
-        setNewSize(0, this.size - 5);
+        for (int i = 0; i < 4; i++) {
+            int pageIndex = i * pageSize;
+            memory[pageIndex] = getIndexOfEnumInByte(PageState.FREE);
+            this.freePages.add(pageIndex);
+        }
+    }
+
+    private byte getIndexOfEnumInByte(PageState pageState) {
+        return (byte) pageState.ordinal();
     }
 
     private byte getFalseInByte() {
@@ -24,34 +44,47 @@ public class Allocator implements MemoryAllocator {
 
     @Override
     public Integer mem_alloc(int size) {
-        for (int i = 0; i < this.size; i++) {
-            int lengthOfBlock = getLengthOfBlock(i);
-
-            if (convertByteToBoolean(memory[i])) {
-                i = i + 5 + lengthOfBlock;
-                continue;
+        if (isMoreThanHalfOfPage(size)) {
+            int numberOfPages = getNumberOfPages(size);
+            List<Integer> pageList = getFreePagesForCall(numberOfPages);
+            for (Integer pageIndex : pageList) {
+                memory[pageIndex] = getIndexOfEnumInByte(PageState.OCCUPIED);
             }
-
-            int sizeWithAlignment = getSizeWithAlignment(size);
-            int nextHeaderIndex = getNextHeaderIndex(lengthOfBlock, i);
-            if (lengthOfBlock >= size) {
-                memory[i] = getTrueInByte();
-                int sizeOfNewBlock = lengthOfBlock - size - 5;
-                setNewSize(i, sizeWithAlignment);
-                createNewHeaderAfterNewBlock(getNextHeaderIndex(getLengthOfBlock(i), i), sizeOfNewBlock);
-                return i;
-            }
-            while (isNextHeaderFree(nextHeaderIndex)) {
-                int newSize = getLengthOfBlock(nextHeaderIndex) + nextHeaderIndex - (i + 4);
-                if (newSize > sizeWithAlignment) {
-                    setNewSize(i, sizeWithAlignment);
-                    createNewHeaderAfterNewBlock(nextHeaderIndex, newSize - sizeWithAlignment);
-                    return i;
+            Integer firstPage = pageList.get(0);
+            memory[firstPage + 1] = ((byte) (pageList.size() - 1));
+            for (int i = 1; i < pageList.size(); i++) {
+                byte[] nextPageIndex = getByteArrayOfInt(pageList.get(i));
+                for (int j = 0; j < nextPageIndex.length; j++) {
+                    int nextPageIndexIterationIndex = firstPage + pageDescriptorSize + (i - 1) * 4 + j;
+                    memory[nextPageIndexIterationIndex] = nextPageIndex[j];
                 }
-                nextHeaderIndex = getNextHeaderIndex(getLengthOfBlock(nextHeaderIndex), nextHeaderIndex);
             }
+            return firstPage;
+        } else {
+            //block in page
+            return null;
         }
-        return null;
+    }
+
+    private List<Integer> getFreePagesForCall(int numberOfPages) {
+        List<Integer> pageList = new ArrayList<>();
+        for (int i = 0; i < numberOfPages; i++) {
+            pageList.add(freePages.remove(0));
+        }
+        return pageList;
+    }
+
+    private int getNumberOfPages(int size) {
+        int predefinedPages = (int) (Math.ceil((size + 0.0) / (pageSize - pageDescriptorSize)));
+        if (predefinedPages * (pageSize - pageDescriptorSize) - size >
+                NEXT_PAGE_DESCRIPTOR_SIZE * (predefinedPages - 1)) {
+            return predefinedPages;
+        }
+        return predefinedPages + 1;
+    }
+
+    private boolean isMoreThanHalfOfPage(int size) {
+        return size > pageSize - 2 - 10;
     }
 
     private boolean isNextHeaderFree(int nextHeaderIndex) {
@@ -63,10 +96,14 @@ public class Allocator implements MemoryAllocator {
     }
 
     private void setNewSize(int i, int sizeWithAlignment) {
-        byte[] array = ByteBuffer.allocate(4).putInt(sizeWithAlignment).array();
+        byte[] array = getByteArrayOfInt(sizeWithAlignment);
         for (int j = 0; j < 4; j++) {
             memory[j + i + 1] = array[j];
         }
+    }
+
+    private byte[] getByteArrayOfInt(int sizeWithAlignment) {
+        return ByteBuffer.allocate(4).putInt(sizeWithAlignment).array();
     }
 
     private byte getTrueInByte() {
