@@ -179,6 +179,8 @@ public class Allocator implements MemoryAllocator {
 
     @Override
     public void mem_dump() {
+        System.out.println("freePages : " + freePages);
+        System.out.println("freeBlocksMap : " + freeBlocksMap);
         printSeparatorLine();
         System.out.println();
         for (byte b : memory) {
