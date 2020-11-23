@@ -76,6 +76,7 @@ public class Allocator implements MemoryAllocator {
             }
             Integer blockIndex = getFirstFreeBlock(currentPage);
             memory[blockIndex] = getTrueInByte();
+            setNewSize(blockIndex, needSize);
             return blockIndex;
         }
     }
@@ -248,7 +249,9 @@ public class Allocator implements MemoryAllocator {
                 if (isAllBlocksIfFree(pageAddress)) {
                     memory[pageAddress] = getIndexOfEnumInByte(PageState.FREE);
                     freePages.add(pageAddress);
-                    freeBlocksMap.values().forEach(l -> {
+                    Collection<List<Integer>> valuesList =
+                            Collections.synchronizedCollection(freeBlocksMap.values());
+                    for (List<Integer> l : valuesList) {
                         if (l.contains(pageAddress)) {
                             if (l.size() == 1) {
                                 freeBlocksMap.remove(getLengthOfBlock(address));
@@ -256,7 +259,7 @@ public class Allocator implements MemoryAllocator {
                                 l.remove(pageAddress);
                             }
                         }
-                    });
+                    }
                 }
             } else {
                 int blockSize = getLengthOfBlock(address);
