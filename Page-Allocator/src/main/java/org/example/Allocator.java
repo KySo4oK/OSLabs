@@ -231,8 +231,12 @@ public class Allocator implements MemoryAllocator {
         System.out.println("freeBlocksMap : " + freeBlocksMap);
         printSeparatorLine();
         System.out.println();
-        for (byte b : memory) {
+        for (int i = 0, memoryLength = memory.length; i < memoryLength; i++) {
+            byte b = memory[i];
             System.out.print(b + " ");
+            if (i % 56 == 0) {
+                System.out.println();
+            }
         }
         System.out.println();
         printSeparatorLine();
