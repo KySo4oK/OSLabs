@@ -16,11 +16,14 @@ public class App {
         System.out.println("address - " + address12);
         allocator.mem_dump();
 
-//
-//        System.out.println("reallocate block");
-//        System.out.println("address - " + allocator.mem_realloc(address, 7));
-//        allocator.mem_dump();
-//
+        System.out.println("reallocate small block");
+        System.out.println("address - " + allocator.mem_realloc(address12, 7));
+        allocator.mem_dump();
+
+        System.out.println("reallocate big block");
+        System.out.println("address - " + allocator.mem_realloc(address, 130));
+        allocator.mem_dump();
+
         System.out.println("make big block free");
         allocator.mem_free(address);
         allocator.mem_dump();

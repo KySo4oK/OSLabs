@@ -9,8 +9,8 @@ public class Allocator implements MemoryAllocator {
     private final byte[] memory;
     private final int pages = 4;
     private final int pageSize;
-    private final int pageDescriptorSize = 2;
-    private final int blockHeaderSize = 5;
+    private final static int pageDescriptorSize = 2;
+    private final static int blockHeaderSize = 5;
     private final List<Integer> freePages = new ArrayList<>();
     private final Map<Integer, List<Integer>> freeBlocksMap = new HashMap<>();
 
@@ -182,35 +182,17 @@ public class Allocator implements MemoryAllocator {
 
     @Override
     public Integer mem_realloc(int address, int newSizeOfExistingBlock) {
-        int realSize = getLengthOfBlock(address);
-        newSizeOfExistingBlock = getSizeWithAlignment(newSizeOfExistingBlock);
-        if (realSize == newSizeOfExistingBlock) {
-            return address;
-        } else if (realSize < newSizeOfExistingBlock) {
-            int nextHeaderIndex = getNextHeaderIndex(realSize, address);
-            while (isNextHeaderFree(nextHeaderIndex)) {
-                int newSize = getLengthOfBlock(nextHeaderIndex) + nextHeaderIndex - (address + 4);
-                if (newSize > newSizeOfExistingBlock) {
-                    setNewSize(address, newSizeOfExistingBlock);
-                    createNewHeaderAfterNewBlock(nextHeaderIndex, newSize - newSizeOfExistingBlock);
-                    return address;
-                }
-                nextHeaderIndex = getNextHeaderIndex(getLengthOfBlock(nextHeaderIndex), nextHeaderIndex);
-            }
-            int newAddress = mem_alloc(newSizeOfExistingBlock);
-            copyBlockToNewAddress(address, newAddress);
-            memory[address] = getFalseInByte();
-            return newAddress;
-        } else {
-            int alignmentBlocksThatCanBeRemoved = (realSize - newSizeOfExistingBlock) / ALIGNMENT_SIZE;
-            if (alignmentBlocksThatCanBeRemoved > 0) {
-                int sizeOfFreeMemory = alignmentBlocksThatCanBeRemoved * ALIGNMENT_SIZE;
-                setNewSize(address, getLengthOfBlock(address) - sizeOfFreeMemory);
-                createNewHeaderAfterNewBlock(getNextHeaderIndex(getLengthOfBlock(address), address), sizeOfFreeMemory);
+        if (!isPageAddress(address)) {
+            if (newSizeOfExistingBlock == getLengthOfBlock(address)) {
                 return address;
+            } else {
+                mem_free(address);
+                return mem_alloc(newSizeOfExistingBlock);
             }
+        } else {
+            mem_free(address);
+            return mem_alloc(newSizeOfExistingBlock);
         }
-        return null;
     }
 
     private void copyBlockToNewAddress(int header, int newAddress) {
