@@ -222,7 +222,74 @@ public class Allocator implements MemoryAllocator {
 
     @Override
     public void mem_free(int address) {
-        memory[address] = getFalseInByte();
+        if (isPageAddress(address)) {
+            if (!isOnePage(address)) {
+                int pageNumber = memory[address + 1];
+                List<Integer> connectedPages = new ArrayList<>();
+                for (int i = 0; i < pageNumber; i++) {
+                    connectedPages.add(address + 1 + NEXT_PAGE_DESCRIPTOR_SIZE * i);
+                }
+                for (Integer connectedPage : connectedPages) {
+                    memory[connectedPage] = getIndexOfEnumInByte(PageState.FREE);
+                    freePages.add(connectedPage);
+                }
+            }
+            memory[address] = getIndexOfEnumInByte(PageState.FREE);
+            freePages.add(address);
+        } else {
+            memory[address] = getFalseInByte();
+            Collection<List<Integer>> values = freeBlocksMap.values();
+            List<Integer> allDividedPages = new ArrayList<>();
+            for (List<Integer> value : values) {
+                allDividedPages.addAll(value);
+            }
+            Integer pageAddress = getPageAddress(address);
+            if (allDividedPages.contains(pageAddress)) {
+                if (isAllBlocksIfFree(pageAddress)) {
+                    memory[pageAddress] = getIndexOfEnumInByte(PageState.FREE);
+                    freePages.add(pageAddress);
+                    freeBlocksMap.values().forEach(l -> {
+                        if (l.contains(pageAddress)) {
+                            if (l.size() == 1) {
+                                freeBlocksMap.remove(getLengthOfBlock(address));
+                            } else {
+                                l.remove(pageAddress);
+                            }
+                        }
+                    });
+                }
+            } else {
+                int blockSize = getLengthOfBlock(address);
+                if (Objects.isNull(freeBlocksMap.get(blockSize))) {
+                    freeBlocksMap.put(blockSize, List.of(pageAddress));
+                } else {
+                    freeBlocksMap.get(blockSize).add(pageAddress);
+                }
+            }
+        }
+    }
+
+    private boolean isAllBlocksIfFree(Integer pageAddress) {
+        for (int i = 2; i < pageSize; i++) {
+            if (memory[i + pageAddress] == getFalseInByte()) {
+                i += getLengthOfBlock(i + pageAddress);
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Integer getPageAddress(int address) {
+        return (address % pageSize) * pageSize;
+    }
+
+    private boolean isOnePage(int address) {
+        return memory[address + 1] == (byte) 0;
+    }
+
+    private boolean isPageAddress(int address) {
+        return address % pageSize == 0;
     }
 
     @Override
@@ -232,11 +299,11 @@ public class Allocator implements MemoryAllocator {
         printSeparatorLine();
         System.out.println();
         for (int i = 0, memoryLength = memory.length; i < memoryLength; i++) {
-            byte b = memory[i];
-            System.out.print(b + " ");
             if (i % 56 == 0) {
                 System.out.println();
             }
+            byte b = memory[i];
+            System.out.print(b + " ");
         }
         System.out.println();
         printSeparatorLine();

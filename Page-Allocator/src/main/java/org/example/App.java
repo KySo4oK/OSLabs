@@ -21,8 +21,12 @@ public class App {
 //        System.out.println("address - " + allocator.mem_realloc(address, 7));
 //        allocator.mem_dump();
 //
-//        System.out.println("make block free");
-//        allocator.mem_free(address);
-//        allocator.mem_dump();
+        System.out.println("make big block free");
+        allocator.mem_free(address);
+        allocator.mem_dump();
+
+        System.out.println("make small block free");
+        allocator.mem_free(address12);
+        allocator.mem_dump();
     }
 }
