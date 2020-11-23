@@ -10,6 +10,12 @@ public class App {
         Integer address = allocator.mem_alloc(70);
         System.out.println("address - " + address);
         allocator.mem_dump();
+
+        System.out.println("allocate small block");
+        Integer address12 = allocator.mem_alloc(10);
+        System.out.println("address - " + address12);
+        allocator.mem_dump();
+
 //
 //        System.out.println("reallocate block");
 //        System.out.println("address - " + allocator.mem_realloc(address, 7));

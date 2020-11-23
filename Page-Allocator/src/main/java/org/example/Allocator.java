@@ -61,9 +61,57 @@ public class Allocator implements MemoryAllocator {
             }
             return firstPage;
         } else {
-            //block in page
-            return null;
+            int needSize = getSizeOfBlockByNeedSize(size);
+            int blockNumber = getBlockNumberByBlockSize(needSize);
+            Integer currentPage = null;
+            if (Objects.isNull(freeBlocksMap.get(needSize))) {
+                Integer firstPage = freePages.remove(0);
+                memory[firstPage] = getIndexOfEnumInByte(PageState.DIVIDED);
+                freeBlocksMap.put(needSize, List.of(firstPage));
+                currentPage = firstPage;
+            } else if (isMoreThanOneBlockAvailableInPage(freeBlocksMap.get(needSize).get(0))) {
+                currentPage = freeBlocksMap.get(needSize).get(0);
+            } else {
+                currentPage = freeBlocksMap.get(needSize).remove(0);
+            }
+            Integer blockIndex = getFirstFreeBlock(currentPage);
+            memory[blockIndex] = getTrueInByte();
+            return blockIndex;
         }
+    }
+
+    private boolean isMoreThanOneBlockAvailableInPage(Integer pageIndex) {
+        int count = 0;
+        for (int i = 2; i < pageSize; i++) {
+            if (!convertByteToBoolean(memory[i + pageIndex])) {
+                count++;
+            }
+            i += getLengthOfBlock(i + pageIndex) + 5;
+        }
+        return count != 1;
+    }
+
+    private Integer getFirstFreeBlock(Integer currentPage) {
+        for (int i = 2; i < pageSize; i++) {
+            if (!convertByteToBoolean(memory[i + currentPage])) {
+                return i + currentPage;
+            } else {
+                i += getLengthOfBlock(i + currentPage) + 5;
+            }
+        }
+        return null;
+    }
+
+    private int getBlockNumberByBlockSize(int needSize) {
+        return (pageSize - pageDescriptorSize) / needSize;
+    }
+
+    private int getSizeOfBlockByNeedSize(int size) {
+        int result = 1;
+        while (size > result) {
+            result *= 2;
+        }
+        return result;
     }
 
     private List<Integer> getFreePagesForCall(int numberOfPages) {
