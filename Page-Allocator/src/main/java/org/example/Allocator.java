@@ -210,7 +210,7 @@ public class Allocator implements MemoryAllocator {
                 int pageNumber = memory[address + 1];
                 List<Integer> connectedPages = new ArrayList<>();
                 for (int i = 0; i < pageNumber; i++) {
-                    connectedPages.add(address + 1 + NEXT_PAGE_DESCRIPTOR_SIZE * i);
+                    connectedPages.add(getLengthOfBlock(address + 1 + NEXT_PAGE_DESCRIPTOR_SIZE * i));
                 }
                 for (Integer connectedPage : connectedPages) {
                     memory[connectedPage] = getIndexOfEnumInByte(PageState.FREE);

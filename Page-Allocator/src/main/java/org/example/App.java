@@ -27,9 +27,5 @@ public class App {
         System.out.println("make big block free");
         allocator.mem_free(address);
         allocator.mem_dump();
-
-        System.out.println("make small block free");
-        allocator.mem_free(address12);
-        allocator.mem_dump();
     }
 }
