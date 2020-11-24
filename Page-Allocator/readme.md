@@ -63,3 +63,18 @@ fully occupied by blocks, we add it to hashmap again.
 Second case: just clear our descriptor and add page address to array of free pages.
 
 ## DEMONSTRATION
+* Integer mem_alloc(int size)
+#### allocate big block - more than half of page( two first pages was occupied, first contains index of second (number 64 in first row))
+![1](images/1.png)
+#### allocate small block - less than half of page - call with 10 bytes, that needs new page to be divided and added to map  
+![2](images/2.png)
+* Integer mem_realloc(int address, int newSizeOfExistingBlock)
+#### reallocate small block - before block was with size 16(check the last one), after - 8(check the last one)
+![3](images/3.png)
+#### reallocate big block - third page (128 index) has state occuppied
+![4](images/4.png)
+* void mem_free(int address)
+#### mem_free with big block - freePages are contains new pages
+![5](images/5.png)
+#### mem_free with small block - freePages are contains new page and map are empty
+![6](images/6.png)
