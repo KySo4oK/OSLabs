@@ -7,11 +7,11 @@ public class App {
         byte[][][] AMD = new byte[100][100][100];
             byte res = 0;
 
-            for (byte i = 0; i < 100; i++)
+            for (byte i = 99; i >= 0; i--)
             {
-                for (byte j = 0; j < 100; j++)
+                for (byte j = 99; j >= 0; j--)
                 {
-                    for (byte k = 0; k < 100; k++)
+                    for (byte k = 99; k >= 0; k--)
                     {
                         AMD [i] [j] [k]++;
                     }
