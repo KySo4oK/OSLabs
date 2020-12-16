@@ -2,33 +2,27 @@ package org.example;
 
 import java.util.Scanner;
 
-import static java.lang.Thread.sleep;
-
 public class App {
 
     public static final Scanner SCANNER = new Scanner(System.in);
 
-    public static boolean func1(int a) throws InterruptedException {
+    public static boolean func1(int a) {
         for (int i = 0; i < 100_000_000; i++) {
-            sleep(1);
             if (i > a) {
                 return false;
             }
         }
-
         return false;
     }
 
-    public static boolean func2() throws InterruptedException {
+    public static boolean func2() {
         for (int i = 0; i < 10; i++) {
-            sleep(10_000_000);
         }
         return false;
     }
 
-    public static boolean func3(int b) throws InterruptedException {
+    public static boolean func3(int b) {
         for (int i = 10; i > 3; i++) {
-            sleep(1);
             if (i < b) {
                 return false;
             }
@@ -36,7 +30,7 @@ public class App {
         return false;
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         System.out.println("\n Inside main()");
         String typeOfShape;
         typeOfShape = SCANNER.next();
